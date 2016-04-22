@@ -11,6 +11,8 @@ var graphcall = require('../../queries/fbQueries');
 var bodyParser = require('body-parser');
 var jsonParser = bodyParser.json();
 var token = null;
+var fbid = null;
+var pool = require('../../node_modules/database/DBPool');
 //Iniialize passport
 router.use(passport.initialize()); 
 app.use(jsonParser);
@@ -29,7 +31,7 @@ passport.use(new Strategy(fbauth, function(accessToken, refreshToken, profile, c
           console.log("User doesn't exist");
     		graphcall.getUserInfo(accessToken, function(fbres){
                 console.log(fbres);
-    			userQueries.fbCreateUser(token, fbres, accessToken, function(res){
+    			userQueries.fbCreateUser(accessToken, fbres, token, function(res){
                     if(res === null){
                         console.log("User not created successfully");
                     }
@@ -53,19 +55,31 @@ router.get('/', generateToken, passport.authenticate('facebook', user_permission
 
 //Return from facebook after authentication
 router.get('/return', passport.authenticate('facebook', user_permissions), function(req, res) {
+    fbid = req['user']['id'];
     res.redirect('/api/login/facebook/finish');
 });
 
-router.get('/finish', function(req,res,next){
-        //console.log(req);
-        res.status(200).send(token);
+router.get('/finish', jsonParser, function(req,res,next){
+        // console.log(req);
+        userQueries.getTokenfromUID(fbid, function(response){
+            if(response == null){ //User does not exist
+                fbid = null;
+                res.status(200).send(token);
+            }
+            else{
+                fbid=null;
+                res.status(200).send(response);
+            }
+        });
 })
 
 //Build middleware
 
 function generateToken(req,res,next){
+
     var randtoken = require('rand-token');
     token = randtoken.generate(255);
+
     next();
 }
 // Exporting the functionality of the router to the calling module

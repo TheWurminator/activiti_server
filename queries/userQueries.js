@@ -62,6 +62,18 @@ exports.getUIDfromToken = function(usertoken, cb){
 	});
 }
 
+exports.getTokenfromUID = function(uid, cb){
+	var query = "select users.activiti_token from users where uid = \'"+uid+"\'";
+	pool.sendQuery(query, function(response){
+		if(response == null || response.length < 1){
+			cb(null);
+		}
+		else{
+			cb(response[0]['activiti_token']);
+		}
+	});
+}
+
 //Deletes a user
 exports.deleteUser = function(token,cb){
 	var query = "delete from users where users.activiti_token = \'" + token + "\'";
