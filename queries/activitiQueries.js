@@ -1,21 +1,20 @@
 var pool = require('../node_modules/database/DBPool');
 var tagQueries = require('./tagQueries');
 var userQueries = require('./userQueries');
-var itself = require('./activitiQueries');
-//Makes a new user based on FB graph response
+var itself = require('./activitiQueries'); //Since these methods are exported, we must reference itself
+
+//Will create a user based on a JSON info file and a uid
 exports.createActiviti = function(info, uid, cb){
 	//This will catch an error, so the entire server doesn't crash when the JSON is wrong
 	try {
 		var addQuery = "insert into activitis (aid, name, description, cost, max_attendees, start_date, end_date, latitude, longitude, uid) values (\'null\', + \'" + info.name + "\', \'" + info.description + "\', \'" + info.cost + "\', \'" + info.max_attendees + "\', \'" + info.start_date + "\', \'" + info.end_date + "\', \'" + info.latitude + "\', \'" + info.longitude + "\', \'" + uid + "\')";
 		pool.sendQuery(addQuery, function(response){
 			if(response == null){
-				console.log("It broke");
 				cb(null);
 			}
 			else{
-				//console.log(response);
-				itself.setTags(response.insertId, info.tags, function(resp){
-					if(resp == null){
+				itself.setTags(response.insertId, info.tags, function(res2){ //Sets the tags for the user
+					if(res2 == null){
 						cb(null);
 					}
 					else{
@@ -26,7 +25,7 @@ exports.createActiviti = function(info, uid, cb){
 		});
 	}
 	catch(e){
-		console.log("Some fields were not found, incorrect JSON createActiviti");
+		console.log("Some fields were not found, incorrect JSON : createActiviti");
 		cb(null);
 	}
 };
@@ -43,17 +42,16 @@ exports.checkOwner = function(aid, uid, cb){
 				cb(true);
 			}
 			else{
-				cb(false);
+				cb(null);
 			}
 		}
 	});
 }
 
+//This will set a user to attend a specific activiti
 exports.setUserAttending = function(aid, uid, cb){
-	//INSERT INTO `activiti_data`.`attending` (`uid`, `aid`) VALUES ('123456', '118');
 	var query = "insert into attending (uid, aid) values (\'"+uid+"\', \'"+aid+"\')";
 	pool.sendQuery(query, function(response){
-		console.log(response);
 		if(response == null){
 			cb(null);
 		}
@@ -63,6 +61,7 @@ exports.setUserAttending = function(aid, uid, cb){
 	});
 }
 
+//This will return all of the users attending an Activiti
 exports.getUsersAttending = function(aid, cb){
 	var query = "select uid from attending where attending.aid = \'" + aid + "\'";
 	pool.sendQuery(query, function(response){
@@ -76,10 +75,10 @@ exports.getUsersAttending = function(aid, cb){
 	});
 }
 
+//This will remove a user that is attending an Activiti
 exports.removeUserAttending = function(aid, uid, cb){
 	var query = "delete from attending where attending.uid = \'"+uid+"\' and attending.aid = \'"+aid+"\'";
 	pool.sendQuery(query, function(response){
-		console.log(response);
 		if(response == null){
 			cb(null);
 		}
@@ -89,12 +88,10 @@ exports.removeUserAttending = function(aid, uid, cb){
 	});
 }
 
-//Deletes a activiti
-//takes in an AID and a UID and a reference to a callback function
+//Deletes an Activiti
 exports.deleteActiviti = function(aid, uid, cb){
 	var query = "delete from activitis where activitis.aid = \'" + aid + "\'";
 	pool.sendQuery(query, function(response){
-		//console.log(response);
 		if(response == null || response.affectedRows == 0){
 			cb(null);
 		}
@@ -104,12 +101,10 @@ exports.deleteActiviti = function(aid, uid, cb){
 	}); 
 };
 
-//This is a function that will set the tags for the user
-//Takes in a uid and json w/tags
+//This is a function that will set the tags for the Activiti
 exports.setTags = function(aid, tags, cb){
-	for(x = 0; x < tags.length; x++){ //Need ot run through the available tags
-		//console.log("This is " + tags[x]);
-		var save = tags[x].toLowerCase();
+	for(x = 0; x < tags.length; x++){ //Need to run through the available tags
+		var save = tags[x].toLowerCase(); //Make all tags lowercase for matching purposes
 		tagQueries.createTag(save, function(response){
 			if(response == null){
 				console.log("There was an error creating the tag");
@@ -117,13 +112,12 @@ exports.setTags = function(aid, tags, cb){
 			}
 			else{
 				//The tag was created, now we need to do something about it
-				//console.log("Inside of create tag save is : " + response);
 				setTagActiviti(aid, response, function(res){
 					if(res == null){
 						console.log("Could not add the tag, for some reason");
 					}
 					else{
-
+						//Keep iterating through the tags
 					}
 				});
 			}
@@ -132,35 +126,18 @@ exports.setTags = function(aid, tags, cb){
 	cb(true);
 }
 
+//This will set a specific tag for an activiti
 function setTagActiviti(aid, tid, cb){
 	var query = "insert into activiti_tags (aid, tid) values (\'" + aid + "\', \'" + tid + "\')";
 	pool.sendQuery(query, function(response){
 		if(response == null){
-			console.log("Tag could not be added");
 			cb(null);
 		}
 		else{
-			console.log("tag successfully added");
 			cb(true);
 		}
 	});
 }
-
-//Checks to see if Activiti exists
-exports.activitiExists = function(uid, cb){
-	var query = "";
-
-	pool.sendQuery(query, function(response){
-		//activiti Does not exist
-		if(response.length < 1){
-			cb(false);
-		}
-		//activiti does exist
-		else{
-			cb(true);
-		}
-	});
-};
 
 //Gets activiti information, sends it up through callback
 exports.getActiviti = function(aid, cb){
@@ -203,8 +180,6 @@ exports.updateActiviti = function(aid, info, cb){
 	}
 	cb(true);
 };
-
-
 
 //This is a function that will fetch the tags for an activiti
 //Takes in an activiti id, and returns a json with tags(tid, name)

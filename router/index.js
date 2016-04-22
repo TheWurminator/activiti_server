@@ -1,6 +1,7 @@
 //Initialize and Export Routes
 module.exports = function (app) {
-	//Verify valid token
+	//Verifies that a token is valid before allowing user to access application routes
+	//Is used as route middleware
 	function auth(req,res,next){
 		var tokenChecker = new require('../node_modules/token-auth-check/tokenCheck');
 		var token = req.get('token');

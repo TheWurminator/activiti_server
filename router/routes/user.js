@@ -88,7 +88,7 @@ router.post('/tags', jsonParser, function(req,res){
 			res.status(400).send("User doesn't exist");
 		}
 		else{
-			userQueries.setTags(response, req.body.tags, function(res2){
+			userQueries.setTags(response, req.body['tags'], function(res2){
 				if(res2 == null){
 					res.status(400).send("Tags could not be created");
 				}

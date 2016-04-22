@@ -2,30 +2,31 @@ var pool = require('../node_modules/database/DBPool');
 var tagQueries = require('./tagQueries');
 var itself = require('./userQueries');
 var x = 0;
-//Creates a new user, ONLY USED FOR DEBUGGING PURPOSES
+
+//DEBUG
+//Creates a new user
+//Takes in an activiti_token, info JSON, Facebook token, and a callback reference
 exports.debugCreateUser = function(usertoken, info, fbtoken, cb){
 	var act_token = usertoken;
 	var addQuery = "INSERT INTO users (uid, fb_token, activiti_token, first_name, bio, dob, gender, last_name) VALUES (\'" + info.uid +"\', \'" + fbtoken +"\', \'" + act_token + "\', \'" + info.first_name + "\', \'"+ info.bio + "\', \'" +  info.dob + "\', \'" + info.gender + "\', \'" + info.last_name + "\');";
 	pool.sendQuery(addQuery, function(res1){
 		if(res1 == null){ //Bad set
-			console.log(null);
 			cb(null);
 		}
 		else{ //Able to create user
-			console.log("User successfully created");
 			//Time to add the tags for the user
 			itself.getUIDfromToken(usertoken, function(res2){
 				if(res2 == null){ //If the uid doesn't exist
-					cb(null) //SHOULD NEVER EVEN HAPPEN
+					cb(null);
 				}
 				else{ //If we get the uid, we need to set the tags
 					console.log("uid should be : " + res2);
 					itself.setTags(res2, info.tags, function(res3){
-						if(res3 == null){
+						if(res3 == null){ //If there is an error in the process
 							cb(null);
 						}
 						else{
-							cb(true);
+							cb(true); //If the process is successful
 						}
 					});
 				}
@@ -34,12 +35,12 @@ exports.debugCreateUser = function(usertoken, info, fbtoken, cb){
 	});
 };
 
-//This is a function to specifically create a user from facebook, this is used in production
+//This is a function to specifically create a user from facebook
+//This is the only function to create a user that is used in a production environment
 exports.fbCreateUser = function(userToken, fbResponse, activiti_token, cb){
 	var addQuery = "insert into users (uid, fb_token, activiti_token, dob, first_name, bio, gender, last_name) values (\'" + fbResponse.id + "\', \'" + userToken + "\', \'" + activiti_token + "\', \'" + fbResponse.birthday + "\', \'" + fbResponse.first_name + "\', \'" + "fbBio" + "\', \'" + fbResponse.gender + "\', \'" + fbResponse.last_name + "\')";
 	pool.sendQuery(addQuery, function(response){
-		if(response == null){
-			console.log("Facebook user not added");
+		if(response == null){ //Facebook user not added
 			cb(null);
 		}
 		else{
@@ -52,11 +53,10 @@ exports.fbCreateUser = function(userToken, fbResponse, activiti_token, cb){
 exports.getUIDfromToken = function(usertoken, cb){
 	var query = "select * from users where activiti_token = \'"+ usertoken +"\'";
 	pool.sendQuery(query, function(response){
-		if(response == null){
-			console.log("There was an error in getUIDfromToken");
+		if(response == null){ //Error in database
 			cb(null);
 		}
-		else{
+		else{ //Successful
 			cb(response[0]['uid']);
 		}
 	});

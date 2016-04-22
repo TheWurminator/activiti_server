@@ -1,1 +1,3 @@
-COP 4331 Group Project for Spring 2016
+COP 4331 Project 
+Activiti_server
+Spring 2016

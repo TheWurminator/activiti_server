@@ -1,5 +1,7 @@
+//This is the main file for running the application
+
 //Instantiate Modules
-var app = require('express')();
+var app = require('express')(); //Need to instantiate the express app to enable everything
 var fs = require('fs'); //Access ssl key and cert
 var https = require('https'); //Enable ssl (secure connection)
 var port = process.env.PORT || 8081; //Configure port for server to listen
@@ -11,6 +13,5 @@ https.createServer({
 	cert: fs.readFileSync('cert.pem') //Public certificate
 }, app).listen(port);
 
-// app.listen(port);
 //Debug Message
 console.log('Server Running on Port: ' + port);

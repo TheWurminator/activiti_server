@@ -1,28 +1,25 @@
 //This is a middleware file that will create a tag
 var pool = require('../node_modules/database/DBPool');
 itself = require('./tagQueries');
+
 //This function will create a tag and put it into the database
 //First checks to see if the tag is actually present
-//If it isnt then itll make a new one
+//If it isnt then it'll make a new one
+//Returns the tag id of the inserted tag
 exports.createTag = function(name, cb){
 	itself.tagExistsName(name, function(response){
-		if(response == null){
+		if(response == null){ //If the tag does not exist
 			var query = "INSERT INTO tags (tid, name) values (NULL, \'" + name + "\')";
-			console.log(query);
 			pool.sendQuery(query, function(res2){
-				console.log("Db response is: " + JSON.stringify(res2));
 				if(res2 == null){
-					console.log("Error is: " + res2);
 					cb(null);
 				}
-				else{
-					console.log("insert id is : " + res2.insertId);
+				else{ //If the query was successful, return the insert id
 					cb(res2.insertId);
 				}
 			});
 		}
 		else{
-			console.log("Response is: " + response);
 			cb(response); // This is the TID
 		}
 	});
@@ -42,8 +39,9 @@ exports.deleteTag = function(tid, cb){
 	});
 }
 
-//This will modify the name of a tag based on the tid entered
-//Must pass in a name
+//DEBUG
+//This will modify the name of a tag based on the tid entered and a name string
+//Returns true if successful, NULL if unsuccessful
 exports.modifyTag = function(tid, newName, cb){
 	var query = "update tags set name = \'" + newName + "\' where tags.tid = " + tid;
 	pool.sendQuery(query, function(response){
@@ -60,30 +58,29 @@ exports.modifyTag = function(tid, newName, cb){
 //Takes in a string for a name and a callback reference
 //Either returns true or null
 exports.tagExistsName = function(name, cb){
-	searchName = name.toLowerCase();
+	searchName = name.toLowerCase(); //All tags are lowercase for matching purposes
 	var query = "select * from tags where name = \'" + searchName + "\'";
 	pool.sendQuery(query, function(response){
-		if(response == null || response.length == 0){
+		if(response == null || response.length == 0){ //Error or empty set
 			console.log("Tag does not already exist");
 			cb(null);
 		}
 		else{ //Tag exists
-			console.log(response.length);
-			cb(response[0].tid);
+			cb(response[0].tid); //Returning the tag id
 		}
 	});
 }
 
-//This is a function that will take in a TID and will return that tag's name
+//This is a function that will take in a TID 
+//Will return the tag's name or will return NULL if it isn't present
 exports.getTagNameTID = function(tid, cb){
 	var query = "select * from tags where tid = \'" + tid +"\'"
-	pool.sendQuery(query, function(response,err){
-		if(response.length == 0 || err){
+	pool.sendQuery(query, function(response){
+		if(response == null || response.length < 1){
 			cb(null);
 		}
 		else{
-			console.log(response[0].name);
-			cb(response[0].name);
+			cb(response[0].name); //Returning the name of the tag
 		}
 	});
 }
