@@ -13,14 +13,19 @@ exports.createActiviti = function(info, uid, cb){
 				cb(null);
 			}
 			else{
-				itself.setTags(response.insertId, info.tags, function(res2){ //Sets the tags for the user
-					if(res2 == null){
-						cb(null);
+				try{
+					itself.setTags(response.insertId, info.tags, function(res2){ //Sets the tags for the user
+						if(res2 == null){
+							cb(null);
+						}
+						else{
+							cb(true);
+						}
+					});
 					}
-					else{
-						cb(true);
-					}
-				});
+				catch(e){
+					console.log("Tag placement error");
+				}
 			}
 		});
 	}
