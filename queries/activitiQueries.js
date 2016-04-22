@@ -8,6 +8,7 @@ exports.createActiviti = function(info, uid, cb){
 	//This will catch an error, so the entire server doesn't crash when the JSON is wrong
 	try {
 		var addQuery = "insert into activitis (aid, name, description, cost, max_attendees, start_date, end_date, latitude, longitude, uid) values (\'null\', + \'" + info.name + "\', \'" + info.description + "\', \'" + info.cost + "\', \'" + info.max_attendees + "\', \'" + info.start_date + "\', \'" + info.end_date + "\', \'" + info.latitude + "\', \'" + info.longitude + "\', \'" + uid + "\')";
+		console.log(addQuery);
 		pool.sendQuery(addQuery, function(response){
 			if(response == null){
 				cb(null);
