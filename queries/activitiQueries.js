@@ -31,6 +31,24 @@ exports.createActiviti = function(info, uid, cb){
 	}
 };
 
+//This checks to see if a specific user is the owner of an activiti
+exports.checkOwner = function(aid, uid, cb){
+	var query = "select * from activitis where activitis.aid = \'" + aid + "\'";
+	pool.sendQuery(query, function(response){
+		if(response == null){
+			cb(null);
+		}
+		else{
+			if(response['uid'] == uid){
+				cb(true);
+			}
+			else{
+				cb(false);
+			}
+		}
+	});
+}
+
 exports.setUserAttending = function(aid, uid, cb){
 	//INSERT INTO `activiti_data`.`attending` (`uid`, `aid`) VALUES ('123456', '118');
 	var query = "insert into attending (uid, aid) values (\'"+uid+"\', \'"+aid+"\')";

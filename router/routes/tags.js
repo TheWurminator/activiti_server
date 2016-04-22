@@ -40,13 +40,14 @@ router.delete('/', jsonParser, function(req,res){
 		else{
 			res.status(400).send("Error when deleting tag");
 		}
-	})
+	});
 });
 
 //DEBUG
 //This function is used to edit the name of a tag in the db
 //This is based on a TID that is given
 router.put('/', jsonParser, function(req,res){
+	if(req.get('tid'))
 	var tid = req.get('tid');
 	var newName = req.get('newName');
 	tagQueries.modifyTag(tid, newName, function(response){

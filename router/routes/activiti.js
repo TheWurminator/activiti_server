@@ -27,12 +27,26 @@ router.post('/', jsonParser, function(req,res) {
 
 //This will allow the addition of tags to an activiti
 router.post('/tags', jsonParser, function(req,res){
-	activitiQueries.setTags(req.get('aid'), req.body.tags, function(response){
-		if(response == null){
-			res.status(400).send("Doesn't work");
+	userQueries.getUIDfromToken(req.get('token'), function(res2){
+		if(res2 == null){
+			res.sendStatus(400);
 		}
 		else{
-			res.status(200).send("tags successfully added to activiti");
+			activitiQueries.checkOwner(req.get('aid'), res2,  function(res3){
+				if(res3 == null){
+					res.sendStatus(403);
+				}
+				else{
+					activitiQueries.setTags(req.get('aid'), req.body.tags, function(response){
+						if(response == null){
+							res.status(400).send("Doesn't work");
+						}
+						else{
+							res.status(200).send("tags successfully added to activiti");
+						}
+					});
+				}
+			});
 		}
 	});
 });
@@ -76,12 +90,19 @@ router.delete('/attending', jsonParser, function(req,res){
 			res.sendStatus(400);
 		}
 		else{
-			activitiQueries.removeUserAttending(req.get('aid'), response, function(res2){
+			activitiQueries.checkOwner(req.get('aid'), response, function(res2){
 				if(res2 == null){
-					res.sendStatus(400);
+					res.sendStatus(403);
 				}
 				else{
-					res.status(200).send("No longer attending activiti");
+					activitiQueries.removeUserAttending(req.get('aid'), response, function(res2){
+						if(res2 == null){
+							res.sendStatus(400);
+						}
+						else{
+							res.status(200).send("No longer attending activiti");
+						}
+					});
 				}
 			});
 		}
@@ -91,16 +112,30 @@ router.delete('/attending', jsonParser, function(req,res){
 //Update activiti info
 router.put('/', jsonParser, function(req, res) {
 	//REPLACE WITH INFO FROM BODY ----
-	var aid = req.get('aid'); //Activiti ID to update
-	activitiQueries.updateActiviti(aid, req.body, function(response){
-		console.log("response is: " + response);
-		if(response == null){
-			res.status(400).send("Activiti update has failed");
+	userQueries.getUIDfromToken(req.get('token'), function(res2){
+		if(res2 == null){
+			res.sendStatus(400);
 		}
 		else{
-			res.status(200).send("Activiti successfully updated");
+			var aid = req.get('aid'); //Activiti ID to update
+			activitiQueries.checkOwner(aid, res2, function(res3){
+				if(res3 == null){
+					res.sendStatus(403);
+				}
+				else{
+					activitiQueries.updateActiviti(aid, req.body, function(response){
+						console.log("response is: " + response);
+						if(response == null){
+							res.status(400).send("Activiti update has failed");
+						}
+						else{
+							res.status(200).send("Activiti successfully updated");
+						}
+					});
+				}
+			});	
 		}
-	});
+	});	
 });
 
 //Delete activiti
@@ -112,13 +147,15 @@ router.delete('/', jsonParser, function(req,res) {
 			res.status(401).send("Unauthorized to modify activiti");
 		}
 		else{
-			activitiQueries.deleteActiviti(aid, response, function(response){
-				if(response == null){
-					res.status(400).send("Deletion unsuccessful");
-				}
-				else{
-					res.status(200).send("Deletion successful");
-				}
+			activitiQueries.checkOwner(req.get('aid'), response, function(res2){
+				activitiQueries.deleteActiviti(aid, response, function(response){
+					if(response == null){
+						res.status(400).send("Deletion unsuccessful");
+					}
+					else{
+						res.status(200).send("Deletion successful");
+					}
+				});
 			});
 		}
 	});

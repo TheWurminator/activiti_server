@@ -48,15 +48,6 @@ exports.fbCreateUser = function(userToken, fbResponse, activiti_token, cb){
 	});
 }
 
-
-//Updates existing token
-// exports.updateFacebookToken = function(uid, fbtoken){
-// 	var query = "update users set fb_token = \'" + fbtoken + "\' where users.uid = \'" + uid + "\'";
-// 	this.pool.sendQuery(query, function(response){
-// 		if(res)
-// 	});
-// };
-
 //This is a function that takes in a user token and returns that user's uid
 exports.getUIDfromToken = function(usertoken, cb){
 	var query = "select * from users where activiti_token = \'"+ usertoken +"\'";
@@ -191,6 +182,7 @@ exports.setTags = function(uid, tags, cb){
 	cb(true);
 }
 
+//This will set a specific tag for a user
 function setTagUser(uid, tid, cb){
 	var query = "insert into user_tags (uid, tid) values (\'" + uid + "\', \'" + tid + "\')";
 	console.log(query);
@@ -206,8 +198,9 @@ function setTagUser(uid, tid, cb){
 	});
 }
 
+//This will retrieve all of the tags for a user
 exports.getTagsUser = function(uid, cb){
-	var query = "select * from user_tags where uid = \'" + uid +"\'";
+	var query = "select t.name, utag.tid from tags t inner join user_tags utag on utag.tid = t.tid where utag.uid = \'" + uid +"\'";
 	pool.sendQuery(query, function(response){
 		if(response == null){
 			cb(null);

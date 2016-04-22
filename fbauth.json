@@ -1,0 +1,5 @@
+{
+    "clientID": "898791360233489",
+    "clientSecret": "1bbf6a5286f00f836841f3e33eb5d74c",
+    "callbackURL": "https://localhost:8081/api/login/facebook/return"
+}
