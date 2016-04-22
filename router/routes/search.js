@@ -10,41 +10,42 @@ router.post('/activiti', jsonParser, function(req,res){
 	var count = 0;
 	var query = "select distinct atag.aid, a.latitude, a.longitude, a.name, a.description " + "from tags t " + "inner join activiti_tags atag on atag.tid = t.tid " + "inner join activitis a on a.aid = atag.aid " + "where ";
 	var length = query.length;
-	for(x in req.body){
-		console.log(req.body[x]);
+	console.log(req.body);
+	for(x in req.body[0]){
+		console.log(req.body[0][x]);
 		if(x == "max_cost"){
-			query = query + "(a.cost > " + req.body['min_cost'] + ") and (a.cost < " + req.body['max_cost'] + ") and ";
+			query = query + "(a.cost > " + req.body[0]['min_cost'] + ") and (a.cost < " + req.body[0]['max_cost'] + ") and ";
 		}
 		else if(x == "name"){
-			query = query + "( a.name like \'%" + req.body[x] +"%\' ) and ";
+			query = query + "( a.name like \'%" + req.body[0][x] +"%\' ) and ";
 		}
 		else if(x == "description"){
-			query = query + "(a.description like \'%" + req.body[x] + "%\') and ";
+			query = query + "(a.description like \'%" + req.body[0][x] + "%\') and ";
 		}
 		else if(x == "tags"){
 			console.log('In tags');
-			for(y in req.body[x]){
+			for(y in req.body[0][x]){
 				if(count == 0){
-					query = query + "(t.name = \"" + req.body[x][y] + "\" ";
+					query = query + "(t.name = \"" + req.body[0][x][y] + "\" ";
 					count++;
 				}
 				else{
-					query = query + "or t.name = \"" + req.body[x][y] +"\" ";
+					query = query + "or t.name = \"" + req.body[0][x][y] +"\" ";
 				}
 			}
 			query = query + ") and "
 		}
 		else if(x == "max_attendees"){
-			query = query + "(a.max_attendees < " + req.body[x] +") and ";
+			query = query + "(a.max_attendees < " + req.body[0][x] +") and ";
 		}
 		else if(x == "min_attendees"){
-			query = query + "(a.max_attendees > " + req.body[x] + ") and ";
+			query = query + "(a.max_attendees > " + req.body[0][x] + ") and ";
 		}
 		else if(x == "start_date"){
-			query = query + "(a.start_date >= \'" + req.body[x] + "\') and ";
+			query = query + "(a.start_date >= \'" + req.body[0][x] + "\') and ";
 		}
 		else if(x == "end_date"){
-			query = query + "(a.end_date <= \'" + req.body[x] + "\') and ";
+			query = query + "(a.end_date <= \'" + req.body[0][x] + "\') and ";
 		}
 	}
 	if(query.length > length){
